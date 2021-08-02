@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -52,5 +53,46 @@ func ParseEventName(request events.CloudWatchEvent) (string, error) {
 		return "", WrapError("Unexpected error unmarshaling event name", err)
 	}
 
+	if eventInfo.EventName == "" {
+		return "", WrapError("'eventName' attribute not found on payload", nil)
+	}
+
 	return eventInfo.EventName, nil
+}
+
+func getStringEnv(name string, defaultValue string) string {
+	stringValue := os.Getenv(name)
+	if stringValue == "" {
+		return defaultValue
+	}
+
+	return stringValue
+}
+
+
+func EnvValidate() (map[string]string, error) {
+	result := make(map[string]string)
+
+	ssmParameterName := getStringEnv("SSM_PARAMETER_NAME", "")
+	newRelicAPITokenARN := getStringEnv("NEW_RELIC_API_TOKEN", "")
+	localExecution := getStringEnv("LOCAL_EXECUTION", "")
+
+	if localExecution == "" {
+		localExecution = "false"
+	} else {
+		localExecution = "true"
+	}
+
+	switch {
+	case ssmParameterName == "":
+		return result, WrapError("Env var SSM_PARAMETER_NAME is missing", nil)
+	case newRelicAPITokenARN == "":
+		return result, WrapError("Env Var NEW_RELIC_API_TOKEN is missing", nil)
+	}
+
+	result["SSM_PARAMETER_NAME"] = ssmParameterName
+	result["NEW_RELIC_API_TOKEN"] = newRelicAPITokenARN
+	result["LOCAL_EXECUTION"] = localExecution
+
+	return result, nil
 }

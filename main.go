@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"deployment-notifications/pkg/helper"
 	"deployment-notifications/pkg/validate"
 	"log"
 
@@ -36,6 +37,13 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 		return LambdaResponse{message: "Event Name Parsing Error"}, err
 	}
 
+	runEnv, err := validate.EnvValidate()
+
+	if err != nil {
+		log.Printf("Error validating run environment: %v", err)
+		return LambdaResponse{message: "Environment Validation Error"}, err
+	}
+
 	ecsARN := request.Resources[0]
 
 	log.Printf("Event Source: %s", request.Source)
@@ -45,6 +53,9 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 	log.Printf("Event Timestamp: %s", request.Time)
 	log.Printf("Event Name: %s", eventName)
 	log.Printf("ECS ARN: %s", ecsARN)
+
+	paramValue, _ := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME"])
+	log.Printf("Parameter 'SSM_PARAMETER_NAME' value is '%s'", paramValue)
 
 	return LambdaResponse{message: "Notification complete!"}, nil
 }
