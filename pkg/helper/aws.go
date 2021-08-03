@@ -1,13 +1,16 @@
 package helper
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/pkg/errors"
 	"os"
+	"strings"
 )
 
 
@@ -60,3 +63,51 @@ func ReadAWSParameter(paramID string) (string, error) {
 
 	return *param.Parameter.Value, nil
 }
+
+
+func GetServiceNameFromARN(arnString string) (string, error) {
+	arnSplit := strings.Split(arnString, "service/")
+
+	if len(arnSplit) < 2 {
+		return "", WrapError(fmt.Sprintf("Input '%s' did not have expected 'service/' prefix", arnString), nil)
+	}
+
+	return arnSplit[1], nil
+}
+
+func ParseEventDetails(request events.CloudWatchEvent) (map[string]string, error) {
+	type EventInfo struct {
+		EventName    string `json:eventName`
+		DeploymentID string `json:deploymentId`
+		UpdatedAt    string `json:updatedAt`
+		Comments     string `json:reason`
+	}
+
+	var eventInfo EventInfo
+	result := make(map[string]string)
+
+	err := json.Unmarshal(request.Detail, &eventInfo)
+
+	if err != nil {
+		return result, WrapError("Unexpected error unmarshaling event details", err)
+	}
+
+	if eventInfo.EventName == "" {
+		return result, WrapError("'eventName' attribute not found on payload", nil)
+	}
+	if eventInfo.DeploymentID == "" {
+		return result, WrapError("'deploymentId' attribute not found on payload", nil)
+	}
+	if eventInfo.UpdatedAt == "" {
+		return result, WrapError("'updatedAt' attribute not found on payload", nil)
+	}
+
+	result["eventName"] = eventInfo.EventName
+	result["deploymentId"] = eventInfo.DeploymentID
+	result["updatedAt"] = eventInfo.UpdatedAt
+	result["reason"] = eventInfo.Comments
+
+	return result, nil
+}
+
+

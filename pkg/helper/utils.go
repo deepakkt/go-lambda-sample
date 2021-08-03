@@ -16,7 +16,7 @@ func WrapError(errorMessage string, err error) error {
 }
 
 
-func DecodeParameterJSON(parameterString string) (map[string]string, error) {
+func DecodeStringJSON(parameterString string) (map[string]string, error) {
 	//this function assumes that the parameter string is a series of
 	//key value pairs which are all string. Any other input type will
 	//error out and the error is returned as is
@@ -32,6 +32,7 @@ func DecodeParameterJSON(parameterString string) (map[string]string, error) {
 	return resultMap, nil
 }
 
+
 func GetStringEnv(name string, defaultValue string) string {
 	stringValue := os.Getenv(name)
 	if stringValue == "" {
@@ -39,6 +40,17 @@ func GetStringEnv(name string, defaultValue string) string {
 	}
 
 	return stringValue
+}
+
+
+func LocateValue(inputKey string, valuesMap map[string]string) string {
+	for key, value := range valuesMap {
+		if key == inputKey {
+			return value
+		}
+	}
+
+	return ""
 }
 
 

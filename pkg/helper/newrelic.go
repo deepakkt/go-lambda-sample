@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-lambda-go/events"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -28,6 +29,26 @@ func GetDefaultHTTPTimeout() int {
 	}
 
 	return defaultTimeout
+}
+
+
+func GetDeploymentUser() string {
+	user := GetStringEnv("DEPLOYMENT_USER", "services@graphcms.com")
+	return user
+}
+
+func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
+	eventDetails, _ := ParseEventDetails(request)
+	result := make(map[string]string)
+
+	result["revision"] = eventDetails["deploymentId"]
+	result["timestamp"] = eventDetails["updatedAt"]
+	result["user"] = GetDeploymentUser()
+	result["description"] = fmt.Sprintf("AWS Account: %s, Region: %s, Deployment ID: %s",
+		request.AccountID, request.Region, request.ID)
+	result["changelog"] = eventDetails["reason"]
+
+	return result
 }
 
 

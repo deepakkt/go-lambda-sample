@@ -2,7 +2,6 @@ package validate
 
 import (
 	"deployment-notifications/pkg/helper"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -28,26 +27,6 @@ func DetailValidate(request events.CloudWatchEvent) (string, error) {
 	}
 
 	return "", nil
-}
-
-
-func ParseEventName(request events.CloudWatchEvent) (string, error) {
-	type EventInfo struct {
-		EventName string `json:eventName`
-	}
-
-	var eventInfo EventInfo
-	err := json.Unmarshal(request.Detail, &eventInfo)
-
-	if err != nil {
-		return "", helper.WrapError("Unexpected error unmarshaling event name", err)
-	}
-
-	if eventInfo.EventName == "" {
-		return "", helper.WrapError("'eventName' attribute not found on payload", nil)
-	}
-
-	return eventInfo.EventName, nil
 }
 
 func EnvValidate() (map[string]string, error) {
