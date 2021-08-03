@@ -1,29 +1,19 @@
 package validate
 
 import (
+	"deployment-notifications/pkg/helper"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func WrapError(errorMessage string, err error) error {
-	if err == nil {
-		return errors.New(errorMessage)
-	}
-
-	return fmt.Errorf("%s: %w", errorMessage, err)
-}
-
-
 func SourceValidate(request events.CloudWatchEvent) (string, error) {
 	// ignore non ECS events
 	if strings.ToLower(request.Source) != "aws.ecs" {
 		outMessage := fmt.Sprintf("Event '%s' received. We only respond to 'aws.ecs' events", request.Source)
-		return outMessage, WrapError(outMessage, nil)
+		return outMessage, helper.WrapError(outMessage, nil)
 	}
 
 	return "", nil
@@ -34,7 +24,7 @@ func DetailValidate(request events.CloudWatchEvent) (string, error) {
 	// ignore non deployment ECS events
 	if strings.ToLower(request.DetailType) != "ecs deployment state change" {
 		outMessage := fmt.Sprintf("ECS Event '%s' received. We only respond to 'ECS Deployment State Change' events", request.DetailType)
-		return outMessage, WrapError(outMessage, nil)
+		return outMessage, helper.WrapError(outMessage, nil)
 	}
 
 	return "", nil
@@ -50,33 +40,29 @@ func ParseEventName(request events.CloudWatchEvent) (string, error) {
 	err := json.Unmarshal(request.Detail, &eventInfo)
 
 	if err != nil {
-		return "", WrapError("Unexpected error unmarshaling event name", err)
+		return "", helper.WrapError("Unexpected error unmarshaling event name", err)
 	}
 
 	if eventInfo.EventName == "" {
-		return "", WrapError("'eventName' attribute not found on payload", nil)
+		return "", helper.WrapError("'eventName' attribute not found on payload", nil)
 	}
 
 	return eventInfo.EventName, nil
 }
 
-func getStringEnv(name string, defaultValue string) string {
-	stringValue := os.Getenv(name)
-	if stringValue == "" {
-		return defaultValue
-	}
-
-	return stringValue
-}
-
-
 func EnvValidate() (map[string]string, error) {
 	result := make(map[string]string)
 
-	ssmParameterName := getStringEnv("SSM_PARAMETER_NAME", "")
-	newRelicAPITokenARN := getStringEnv("NEW_RELIC_API_TOKEN", "")
-	localExecution := getStringEnv("LOCAL_EXECUTION", "")
+	ssmParameterNameNewRelic := helper.GetStringEnv("SSM_PARAMETER_NAME_NEW_RELIC", "")
+	ssmParameterNameSlack := helper.GetStringEnv("SSM_PARAMETER_NAME_SLACK", "")
+	newRelicAPITokenARN := helper.GetStringEnv("NEW_RELIC_API_TOKEN", "")
+	slackAPITokenARN := helper.GetStringEnv("SLACK_API_TOKEN", "")
+	localExecution := helper.GetStringEnv("LOCAL_EXECUTION", "")
+	awsAccountNumber := helper.GetStringEnv("AWS_ACCOUNT_NUMBER", "")
+	newRelicBaseDomain := helper.GetStringEnv("NEW_RELIC_BASE_DOMAIN", "api.eu.newrelic.com")
 
+	// placeholder env var in case
+	// we want to test the Lambda locally
 	if localExecution == "" {
 		localExecution = "false"
 	} else {
@@ -84,15 +70,25 @@ func EnvValidate() (map[string]string, error) {
 	}
 
 	switch {
-	case ssmParameterName == "":
-		return result, WrapError("Env var SSM_PARAMETER_NAME is missing", nil)
+	case ssmParameterNameNewRelic == "":
+		return result, helper.WrapError("Env var SSM_PARAMETER_NAME_NEW_RELIC is missing", nil)
+	case ssmParameterNameSlack == "":
+		return result, helper.WrapError("Env var SSM_PARAMETER_NAME_SLACK is missing", nil)
 	case newRelicAPITokenARN == "":
-		return result, WrapError("Env Var NEW_RELIC_API_TOKEN is missing", nil)
+		return result, helper.WrapError("Env Var NEW_RELIC_API_TOKEN is missing", nil)
+	case slackAPITokenARN == "":
+		return result, helper.WrapError("Env Var SLACK_API_TOKEN is missing", nil)
+	case awsAccountNumber == "":
+		return result, helper.WrapError("Env Var AWS_ACCOUNT_NUMBER is missing", nil)
 	}
 
-	result["SSM_PARAMETER_NAME"] = ssmParameterName
+	result["SSM_PARAMETER_NAME_NEW_RELIC"] = ssmParameterNameNewRelic
+	result["SSM_PARAMETER_NAME_SLACK"] = ssmParameterNameSlack
 	result["NEW_RELIC_API_TOKEN"] = newRelicAPITokenARN
+	result["SLACK_API_TOKEN"] = slackAPITokenARN
+	result["AWS_ACCOUNT_NUMBER"] = awsAccountNumber
 	result["LOCAL_EXECUTION"] = localExecution
+	result["NEW_RELIC_BASE_DOMAIN"] = newRelicBaseDomain
 
 	return result, nil
 }

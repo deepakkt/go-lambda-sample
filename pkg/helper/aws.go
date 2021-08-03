@@ -11,6 +11,12 @@ import (
 )
 
 
+func GetECSServiceARN(serviceName, awsRegion, awsAccountNumber string) string {
+	return fmt.Sprintf("arn:aws:ecs:%s:%s:service/%s",
+		awsRegion, serviceName, awsAccountNumber)
+}
+
+
 func GetAwsDefaultRegion() string {
 	val, exists := os.LookupEnv("AWS_REGION")
 	if !exists || len(val) < 1 {

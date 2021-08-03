@@ -4,46 +4,56 @@ import (
 	"context"
 	"deployment-notifications/pkg/helper"
 	"deployment-notifications/pkg/validate"
+	"github.com/aws/aws-lambda-go/lambda"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type LambdaResponse struct {
 	message string
 }
 
-
-func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaResponse, error) {
+func validators(request events.CloudWatchEvent) (string, error) {
 	message, err := validate.SourceValidate(request)
-
 	if err != nil {
-		log.Println(message)
-		return LambdaResponse{message: message}, err
+		return message, err
 	}
 
 	message, err = validate.DetailValidate(request)
 
 	if err != nil {
-		log.Println(message)
-		return LambdaResponse{message: message}, err
+		return message, err
 	}
 
-	eventName, err := validate.ParseEventName(request)
+	_, err = validate.ParseEventName(request)
 
 	if err != nil {
-		log.Printf("Event Name Parsing Error: %v", err)
-		return LambdaResponse{message: "Event Name Parsing Error"}, err
+		return "Event Name Parsing Error", err
 	}
 
-	runEnv, err := validate.EnvValidate()
+	_, err = validate.EnvValidate()
 
 	if err != nil {
-		log.Printf("Error validating run environment: %v", err)
-		return LambdaResponse{message: "Environment Validation Error"}, err
+		return "Environment Validation Error", err
 	}
 
+	return "", nil
+}
+
+
+func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaResponse, error) {
+
+	errorMessage, err := validators(request)
+
+	if err != nil {
+		log.Printf("Error validating execution setup: %s", errorMessage)
+		log.Printf("Error: %v", err)
+		return LambdaResponse{message: errorMessage}, err
+	}
+
+	eventName, _ := validate.ParseEventName(request)
+	runEnv, _ := validate.EnvValidate()
 	ecsARN := request.Resources[0]
 
 	log.Printf("Event Source: %s", request.Source)
@@ -53,6 +63,8 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 	log.Printf("Event Timestamp: %s", request.Time)
 	log.Printf("Event Name: %s", eventName)
 	log.Printf("ECS ARN: %s", ecsARN)
+
+	log.Printf("SSM Parameter Used: %s", runEnv["SSM_PARAMETER_NAME"])
 
 	paramValue, _ := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME"])
 	log.Printf("Parameter 'SSM_PARAMETER_NAME' value is '%s'", paramValue)
