@@ -34,6 +34,7 @@ func EnvValidate() (map[string]string, error) {
 
 	ssmParameterNameNewRelic := helper.GetStringEnv("SSM_PARAMETER_NAME_NEW_RELIC", "")
 	ssmParameterNameSlack := helper.GetStringEnv("SSM_PARAMETER_NAME_SLACK", "")
+	ssmParameterMessageSlack := helper.GetStringEnv("SSM_PARAMETER_MESSAGE_SLACK", "")
 	newRelicAPITokenARN := helper.GetStringEnv("NEW_RELIC_API_TOKEN", "")
 	slackAPITokenARN := helper.GetStringEnv("SLACK_API_TOKEN", "")
 	localExecution := helper.GetStringEnv("LOCAL_EXECUTION", "")
@@ -53,6 +54,8 @@ func EnvValidate() (map[string]string, error) {
 		return result, helper.WrapError("Env var SSM_PARAMETER_NAME_NEW_RELIC is missing", nil)
 	case ssmParameterNameSlack == "":
 		return result, helper.WrapError("Env var SSM_PARAMETER_NAME_SLACK is missing", nil)
+	case ssmParameterMessageSlack == "":
+		return result, helper.WrapError("Env var SSM_PARAMETER_MESSAGE_SLACK is missing", nil)
 	case newRelicAPITokenARN == "":
 		return result, helper.WrapError("Env Var NEW_RELIC_API_TOKEN is missing", nil)
 	case slackAPITokenARN == "":
@@ -63,6 +66,7 @@ func EnvValidate() (map[string]string, error) {
 
 	result["SSM_PARAMETER_NAME_NEW_RELIC"] = ssmParameterNameNewRelic
 	result["SSM_PARAMETER_NAME_SLACK"] = ssmParameterNameSlack
+	result["SSM_PARAMETER_MESSAGE_SLACK"] = ssmParameterMessageSlack
 	result["NEW_RELIC_API_TOKEN"] = newRelicAPITokenARN
 	result["SLACK_API_TOKEN"] = slackAPITokenARN
 	result["AWS_ACCOUNT_NUMBER"] = awsAccountNumber

@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -17,25 +16,6 @@ func GetNewRelicDeploymentURL(baseDomain, appID string) string {
 		baseDomain, appID)
 }
 
-
-func GetDefaultHTTPTimeout() int {
-	// putting this as a configurable parameter
-	// return value in seconds
-
-	defaultTimeout, err := strconv.Atoi(GetStringEnv("HTTP_TIMEOUT", "15"))
-
-	if err != nil {
-		defaultTimeout = 15
-	}
-
-	return defaultTimeout
-}
-
-
-func GetDeploymentUser() string {
-	user := GetStringEnv("DEPLOYMENT_USER", "services@graphcms.com")
-	return user
-}
 
 func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
 	eventDetails, _ := ParseEventDetails(request)
@@ -52,8 +32,8 @@ func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
 }
 
 
-func PostDeploymentPayload(payload map[string]string,
-	baseDomain, appID, apiKey string) (statusCode int, err error) {
+func PostNewRelicDeployment(payload map[string]string,
+	baseDomain, appID, apiKey string) (int, error) {
 	// posts deployment payload to the New Relic application deployment
 	// section. It adds the "deployment" meta-key
 	// Do not include that in the input payload
