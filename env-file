@@ -1,0 +1,9 @@
+AWS_DEFAULT_REGION=ap-south-1
+SSM_PARAMETER_NAME_NEW_RELIC=new-relic-deployment-notification
+SSM_PARAMETER_NAME_SLACK=slack-notification-configuration
+NEW_RELIC_API_TOKEN=dev/newrelic/apikey
+SLACK_API_TOKEN=dev/slack/apikey
+SSM_PARAMETER_MESSAGE_SLACK=slack-deployment-notification-message-template
+AWS_ACCESS_KEY_ID=<set-this>
+AWS_SECRET_ACCESS_KEY=<set-this>
+AWS_SESSION_TOKEN=<set-this>

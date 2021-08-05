@@ -14,12 +14,6 @@ import (
 )
 
 
-func GetECSServiceARN(serviceName, awsRegion, awsAccountNumber string) string {
-	return fmt.Sprintf("arn:aws:ecs:%s:%s:service/%s",
-		awsRegion, serviceName, awsAccountNumber)
-}
-
-
 func GetAwsDefaultRegion() string {
 	val, exists := os.LookupEnv("AWS_REGION")
 	if !exists || len(val) < 1 {
@@ -75,12 +69,13 @@ func GetServiceNameFromARN(arnString string) (string, error) {
 	return arnSplit[1], nil
 }
 
+
 func ParseEventDetails(request events.CloudWatchEvent) (map[string]string, error) {
 	type EventInfo struct {
 		EventName    string `json:eventName`
 		DeploymentID string `json:deploymentId`
 		UpdatedAt    string `json:updatedAt`
-		Comments     string `json:reason`
+		Reason       string `json:reason`
 	}
 
 	var eventInfo EventInfo
@@ -105,7 +100,7 @@ func ParseEventDetails(request events.CloudWatchEvent) (map[string]string, error
 	result["eventName"] = eventInfo.EventName
 	result["deploymentId"] = eventInfo.DeploymentID
 	result["updatedAt"] = eventInfo.UpdatedAt
-	result["reason"] = eventInfo.Comments
+	result["reason"] = eventInfo.Reason
 
 	return result, nil
 }

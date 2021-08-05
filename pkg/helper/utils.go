@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+
 func WrapError(errorMessage string, err error) error {
 	if err == nil {
 		return errors.New(errorMessage)
@@ -55,13 +56,12 @@ func LocateValue(inputKey string, valuesMap map[string]string) string {
 
 
 func LocateValueMultiple(inputKey string, valuesMap map[string][]string) []string {
-	var valueDefault []string
 	for key, value := range valuesMap {
 		if key == inputKey {
 			return value
 		}
 	}
 
-	return valueDefault
+	return []string{}
 }
 

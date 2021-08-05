@@ -70,10 +70,9 @@ func GenerateSlackNotificationStruct(request events.CloudWatchEvent) SlackNotifi
 
 func GeneratePayload(templateMessage string, templateValues SlackNotificationFields, parseQuoteTags bool) (string, error) {
 	parsedMessage := templateMessage
-	if parseQuoteTags {
-		parsedMessage = strings.ReplaceAll(templateMessage, "<varbegin>", "{{")
-		parsedMessage = strings.ReplaceAll(parsedMessage, "<varend>", "}}")
-	}
+
+	parsedMessage = strings.ReplaceAll(templateMessage, "<varbegin>", "{{")
+	parsedMessage = strings.ReplaceAll(parsedMessage, "<varend>", "}}")
 
 	t := template.New("Slack Template")
 
