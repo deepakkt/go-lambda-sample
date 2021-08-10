@@ -58,12 +58,12 @@ func GenerateSlackNotificationStruct(request events.CloudWatchEvent) SlackNotifi
 
 	return SlackNotificationFields{
 		ServiceName: ecsServiceName,
-		DeploymentRevision: eventDetails["deploymentId"],
+		DeploymentRevision: eventDetails.DeploymentID,
 		AWSReference: request.ID,
 		AWSRegion: request.Region,
 		AWSAccount: request.AccountID,
-		DeploymentTimestamp: eventDetails["updatedAt"],
-		DeploymentDescription: eventDetails["reason"],
+		DeploymentTimestamp: eventDetails.UpdatedAt,
+		DeploymentDescription: eventDetails.Reason,
 	}
 }
 

@@ -2,8 +2,8 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
 )
 
@@ -43,16 +43,6 @@ func GetStringEnv(name string, defaultValue string) string {
 	return stringValue
 }
 
-
-func LocateValue(inputKey string, valuesMap map[string]string) string {
-	for key, value := range valuesMap {
-		if key == inputKey {
-			return value
-		}
-	}
-
-	return ""
-}
 
 
 func LocateValueMultiple(inputKey string, valuesMap map[string][]string) []string {

@@ -83,10 +83,10 @@ func TestParseEventDetailSuccess(t *testing.T) {
 
 	parseOutput, err := helper.ParseEventDetails(cloudwatchEvent)
 
-	assert.Equal(t, "SERVICE_DEPLOYMENT_COMPLETED", parseOutput["eventName"])
-	assert.Equal(t, "ecs-svc/123", parseOutput["deploymentId"])
-	assert.Equal(t, "2020-05-23T11:11:11Z", parseOutput["updatedAt"])
-	assert.Equal(t, "ECS deployment deploymentId in progress.", parseOutput["reason"])
+	assert.Equal(t, "SERVICE_DEPLOYMENT_COMPLETED", parseOutput.EventName)
+	assert.Equal(t, "ecs-svc/123", parseOutput.DeploymentID)
+	assert.Equal(t, "2020-05-23T11:11:11Z", parseOutput.UpdatedAt)
+	assert.Equal(t, "ECS deployment deploymentId in progress.", parseOutput.Reason)
 	assert.Nil(t, err)
 }
 

@@ -21,12 +21,12 @@ func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
 	eventDetails, _ := ParseEventDetails(request)
 	result := make(map[string]string)
 
-	result["revision"] = eventDetails["deploymentId"]
-	result["timestamp"] = eventDetails["updatedAt"]
+	result["revision"] = eventDetails.DeploymentID
+	result["timestamp"] = eventDetails.UpdatedAt
 	result["user"] = GetDeploymentUser()
 	result["description"] = fmt.Sprintf("AWS Account: %s, Region: %s, Deployment ID: %s",
 		request.AccountID, request.Region, request.ID)
-	result["changelog"] = eventDetails["reason"]
+	result["changelog"] = eventDetails.Reason
 
 	return result
 }

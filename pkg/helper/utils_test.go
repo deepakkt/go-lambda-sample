@@ -49,21 +49,6 @@ func TestGetStringEnv(t *testing.T) {
 }
 
 
-func TestLocateValue(t *testing.T) {
-	expectedMap := make(map[string]string)
-
-	expectedMap["key1"] = "value1"
-	expectedMap["key2"] = "value2"
-
-	result := helper.LocateValue("key1", expectedMap)
-	assert.Equal(t, "value1", result)
-	result = helper.LocateValue("key2", expectedMap)
-	assert.Equal(t, "value2", result)
-	result = helper.LocateValue("key3", expectedMap)
-	assert.Equal(t, "", result)
-}
-
-
 func TestLocateValueMultiple(t *testing.T) {
 	expectedMap := make(map[string][]string)
 

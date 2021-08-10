@@ -16,7 +16,7 @@ docker build -t deployment-notifications:"${GIT_LAST_COMMIT}" .
 ## Note: Update env-file with live AWS creds from SSO session
 ## change other params as suitable for testing
 docker run -d -v ~/.aws-lambda-rie:/aws-lambda \
---env-file ./local-test/env-file \
+--env-file ./.env \
 --entrypoint /aws-lambda/aws-lambda-rie  \
 -p 9000:8080 deployment-notifications:"${GIT_LAST_COMMIT}" /main
 

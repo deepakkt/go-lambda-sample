@@ -144,14 +144,12 @@ func TestEnvValidatePass(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
 	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
 	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 	os.Setenv("NEW_RELIC_BASE_DOMAIN", "param6")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
 	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
 	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
 	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 	defer os.Unsetenv("NEW_RELIC_BASE_DOMAIN")
 
 
@@ -163,7 +161,6 @@ func TestEnvValidatePass(t *testing.T) {
 	assert.Equal(t, "param2", result["SSM_PARAMETER_NAME_SLACK"])
 	assert.Equal(t, "param3", result["SSM_PARAMETER_MESSAGE_SLACK"])
 	assert.Equal(t, "param4", result["NEW_RELIC_API_TOKEN"])
-	assert.Equal(t, "param5", result["SLACK_API_TOKEN"])
 	assert.Equal(t, "param6", result["NEW_RELIC_BASE_DOMAIN"])
 }
 
@@ -173,13 +170,11 @@ func TestEnvValidatePassNoDomain(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
 	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
 	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
 	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
 	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
 	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 
 	result, err:= validate.EnvValidate()
 
@@ -189,7 +184,6 @@ func TestEnvValidatePassNoDomain(t *testing.T) {
 	assert.Equal(t, "param2", result["SSM_PARAMETER_NAME_SLACK"])
 	assert.Equal(t, "param3", result["SSM_PARAMETER_MESSAGE_SLACK"])
 	assert.Equal(t, "param4", result["NEW_RELIC_API_TOKEN"])
-	assert.Equal(t, "param5", result["SLACK_API_TOKEN"])
 	assert.Equal(t, "api.eu.newrelic.com", result["NEW_RELIC_BASE_DOMAIN"])
 }
 
@@ -198,12 +192,10 @@ func TestEnvValidateFailSSMNewRelic(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
 	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
 	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
 	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
 	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 
 	_, err:= validate.EnvValidate()
 
@@ -215,12 +207,10 @@ func TestEnvValidateFailSSMSlack(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_NEW_RELIC", "param1")
 	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
 	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
 	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
 	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 
 	_, err:= validate.EnvValidate()
 
@@ -232,12 +222,10 @@ func TestEnvValidateFailMessageSlack(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_NEW_RELIC", "param1")
 	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
 	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
 	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
 	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 
 	_, err:= validate.EnvValidate()
 
@@ -249,32 +237,13 @@ func TestEnvValidateFailNewRelicAPIToken(t *testing.T) {
 	os.Setenv("SSM_PARAMETER_NAME_NEW_RELIC", "param1")
 	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
 	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
-	os.Setenv("SLACK_API_TOKEN", "param5")
 
 	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
 	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
 	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
-	defer os.Unsetenv("SLACK_API_TOKEN")
 
 	_, err:= validate.EnvValidate()
 
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), "NEW_RELIC_API_TOKEN"))
-}
-
-func TestEnvValidateFailSlackAPIToken(t *testing.T) {
-	os.Setenv("SSM_PARAMETER_NAME_NEW_RELIC", "param1")
-	os.Setenv("SSM_PARAMETER_NAME_SLACK", "param2")
-	os.Setenv("SSM_PARAMETER_MESSAGE_SLACK", "param3")
-	os.Setenv("NEW_RELIC_API_TOKEN", "param4")
-
-	defer os.Unsetenv("SSM_PARAMETER_NAME_NEW_RELIC")
-	defer os.Unsetenv("SSM_PARAMETER_NAME_SLACK")
-	defer os.Unsetenv("SSM_PARAMETER_MESSAGE_SLACK")
-	defer os.Unsetenv("NEW_RELIC_API_TOKEN")
-
-	_, err:= validate.EnvValidate()
-
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), "SLACK_API_TOKEN"))
 }

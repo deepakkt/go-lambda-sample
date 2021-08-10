@@ -5,8 +5,9 @@ import (
 	"deployment-notifications/pkg/helper"
 	"deployment-notifications/pkg/validate"
 	"fmt"
+	"errors"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/pkg/errors"
+
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -34,9 +35,9 @@ func validators(request events.CloudWatchEvent) (string, error) {
 		return "Event Details Parsing Error", err
 	}
 
-	if eventDetails["eventName"] != "SERVICE_DEPLOYMENT_COMPLETED" {
+	if eventDetails.EventName != "SERVICE_DEPLOYMENT_COMPLETED" {
 		msg := fmt.Sprintf("We received '%s' which we don't track. We only want 'SERVICE_DEPLOYMENT_COMPLETED'",
-			eventDetails["eventName"])
+			eventDetails.EventName)
 		return msg, errors.New(msg)
 	}
 
@@ -130,9 +131,9 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 		return LambdaResponse{message: "ECS Service Name Parse Failure"}, err
 	}
 
-	newRelicTargetApp := helper.LocateValue(ecsServiceName, serviceNewRelicMap)
+	newRelicTargetApp, ok := serviceNewRelicMap[ecsServiceName]
 
-	if newRelicTargetApp == "" {
+	if !ok {
 		// this means that the mapping did not contain an entry
 		// for the service which is notifying us - it either means
 		// we missed to configure it or we don't care about this
