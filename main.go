@@ -4,8 +4,8 @@ import (
 	"context"
 	"deployment-notifications/pkg/helper"
 	"deployment-notifications/pkg/validate"
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"log"
@@ -16,6 +16,17 @@ import (
 type LambdaResponse struct {
 	message string
 }
+
+func init() {
+	runEnv, err := validate.EnvValidate()
+
+	if err != nil {
+		log.Fatalf("Environment validation failed: %v", err)
+	}
+
+	logRunEnv(runEnv)
+}
+
 
 func validators(request events.CloudWatchEvent) (string, error) {
 	message, err := validate.SourceValidate(request)
@@ -39,12 +50,6 @@ func validators(request events.CloudWatchEvent) (string, error) {
 		msg := fmt.Sprintf("We received '%s' which we don't track. We only want 'SERVICE_DEPLOYMENT_COMPLETED'",
 			eventDetails.EventName)
 		return msg, errors.New(msg)
-	}
-
-	_, err = validate.EnvValidate()
-
-	if err != nil {
-		return "Environment Validation Error", err
 	}
 
 	return "", nil
@@ -83,7 +88,6 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 
 	logRequest(request)
 	runEnv, _ := validate.EnvValidate()
-	logRunEnv(runEnv)
 
 	newRelicMapping, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME_NEW_RELIC"])
 	if err != nil {
@@ -154,8 +158,12 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 	deployStatus, err := helper.PostNewRelicDeployment(newRelicPayload,
 		runEnv["NEW_RELIC_BASE_DOMAIN"], newRelicTargetApp, newRelicAPIToken)
 	if err != nil {
-		log.Printf("New Relic submit failed with status: %d, %v", deployStatus, err)
-		return LambdaResponse{message: "New Relic submission failure"}, err
+		if deployStatus == 999 {
+			log.Printf("New Relic submit aborted: %v", err)
+		} else {
+			log.Printf("New Relic submit failed with status: %d, %v", deployStatus, err)
+			return LambdaResponse{message: "New Relic submission failure"}, err
+		}
 	}
 
 	log.Printf("New Relic Payload submitted: %v, status: %d", newRelicPayload, deployStatus)

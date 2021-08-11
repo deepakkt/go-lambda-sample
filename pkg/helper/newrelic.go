@@ -45,13 +45,13 @@ func PostNewRelicDeployment(payload map[string]string,
 	finalPayloadBytes, err := json.Marshal(finalPayload)
 
 	if err != nil {
-		return 500, WrapError("Error marshaling New Relic deployment payload into bytes", err)
+		return 999, WrapError("Error marshaling New Relic deployment payload into bytes", err)
 	}
 
 	req, err := http.NewRequest("POST", deploymentURL, bytes.NewBuffer(finalPayloadBytes))
 
 	if err != nil {
-		return 500, WrapError("Error formatting new request for New Relic deployment", err)
+		return 999, WrapError("Error formatting new request for New Relic deployment", err)
 	}
 
 	req.Header.Set("Api-Key", apiKey)
@@ -70,5 +70,8 @@ func PostNewRelicDeployment(payload map[string]string,
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	log.Printf("Response Body: %s", string(respBody))
 
+	if resp.StatusCode != 201 {
+		return resp.StatusCode, WrapError("New Relic final submission failed", nil)
+	}
 	return resp.StatusCode, nil
 }
