@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-
 func TestHTTPTimeout(t *testing.T) {
 	defaultTime := helper.GetDefaultHTTPTimeout()
 	assert.Equal(t, 15, defaultTime)
@@ -17,7 +16,6 @@ func TestHTTPTimeout(t *testing.T) {
 	defaultTime = helper.GetDefaultHTTPTimeout()
 	assert.Equal(t, 999, defaultTime)
 }
-
 
 func TestDefaultUser(t *testing.T) {
 	defaultUser := helper.GetDeploymentUser()

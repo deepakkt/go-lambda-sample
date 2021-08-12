@@ -14,15 +14,14 @@ import (
 )
 
 type SlackNotificationFields struct {
-	ServiceName string
-	DeploymentRevision string
-	AWSReference string
-	AWSRegion string
-	AWSAccount string
-	DeploymentTimestamp string
+	ServiceName           string
+	DeploymentRevision    string
+	AWSReference          string
+	AWSRegion             string
+	AWSAccount            string
+	DeploymentTimestamp   string
 	DeploymentDescription string
 }
-
 
 func DecodeSlackMapping(parameterString string) (map[string][]string, error) {
 	//this function assumes that the parameter string is a series of
@@ -40,7 +39,6 @@ func DecodeSlackMapping(parameterString string) (map[string][]string, error) {
 	return resultMap, nil
 }
 
-
 func GetDefaultWebhook(valueMap map[string][]string) string {
 	defaultServiceMap := LocateValueMultiple("default-service", valueMap)
 
@@ -51,22 +49,20 @@ func GetDefaultWebhook(valueMap map[string][]string) string {
 	return defaultServiceMap[0]
 }
 
-
 func GenerateSlackNotificationStruct(request events.CloudWatchEvent) SlackNotificationFields {
 	eventDetails, _ := ParseEventDetails(request)
 	ecsServiceName, _ := GetServiceNameFromARN(request.Resources[0])
 
 	return SlackNotificationFields{
-		ServiceName: ecsServiceName,
-		DeploymentRevision: eventDetails.DeploymentID,
-		AWSReference: request.ID,
-		AWSRegion: request.Region,
-		AWSAccount: request.AccountID,
-		DeploymentTimestamp: eventDetails.UpdatedAt,
+		ServiceName:           ecsServiceName,
+		DeploymentRevision:    eventDetails.DeploymentID,
+		AWSReference:          request.ID,
+		AWSRegion:             request.Region,
+		AWSAccount:            request.AccountID,
+		DeploymentTimestamp:   eventDetails.UpdatedAt,
 		DeploymentDescription: eventDetails.Reason,
 	}
 }
-
 
 func GeneratePayload(templateMessage string, templateValues SlackNotificationFields, parseQuoteTags bool) (string, error) {
 	parsedMessage := templateMessage
@@ -97,7 +93,6 @@ func GeneratePayload(templateMessage string, templateValues SlackNotificationFie
 
 	return finalOut, nil
 }
-
 
 func PostSlackMessage(messageTemplate string, templateValues SlackNotificationFields,
 	webhookURL string) (int, error) {

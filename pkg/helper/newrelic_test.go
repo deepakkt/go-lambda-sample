@@ -15,7 +15,6 @@ func TestGetNewRelicDeploymentURL(t *testing.T) {
 	assert.Equal(t, "https://onenewrelic.com/v2/applications/12345/deployments.json", deploymentURL)
 }
 
-
 func TestGetNewRelicPayload(t *testing.T) {
 	sampleEvent := `
 {                                                                         

@@ -8,7 +8,6 @@ import (
 	"testing"
 )
 
-
 func TestDecodeStringJSON(t *testing.T) {
 	sampleMap := `
 {
@@ -36,7 +35,6 @@ func TestDecodeStringJSON(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-
 func TestGetStringEnv(t *testing.T) {
 	os.Setenv("ENV_VAR", "value")
 	defer os.Unsetenv("ENV_VAR")
@@ -47,7 +45,6 @@ func TestGetStringEnv(t *testing.T) {
 	envOut = helper.GetStringEnv("ENV_VAR_MISSING", "missing")
 	assert.Equal(t, "missing", envOut)
 }
-
 
 func TestLocateValueMultiple(t *testing.T) {
 	expectedMap := make(map[string][]string)

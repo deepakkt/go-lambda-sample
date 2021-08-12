@@ -18,7 +18,6 @@ func SourceValidate(request events.CloudWatchEvent) (string, error) {
 	return "", nil
 }
 
-
 func DetailValidate(request events.CloudWatchEvent) (string, error) {
 	// ignore non deployment ECS events
 	if strings.ToLower(request.DetailType) != "ecs deployment state change" {
@@ -28,7 +27,6 @@ func DetailValidate(request events.CloudWatchEvent) (string, error) {
 
 	return "", nil
 }
-
 
 func EnvValidate() (map[string]string, error) {
 	result := make(map[string]string)

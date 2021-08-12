@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-
 func WrapError(errorMessage string, err error) error {
 	if err == nil {
 		return errors.New(errorMessage)
@@ -15,7 +14,6 @@ func WrapError(errorMessage string, err error) error {
 
 	return fmt.Errorf("%s: %w", errorMessage, err)
 }
-
 
 func DecodeStringJSON(parameterString string) (map[string]string, error) {
 	//this function assumes that the parameter string is a series of
@@ -33,7 +31,6 @@ func DecodeStringJSON(parameterString string) (map[string]string, error) {
 	return resultMap, nil
 }
 
-
 func GetStringEnv(name string, defaultValue string) string {
 	stringValue := os.Getenv(name)
 	if stringValue == "" {
@@ -42,8 +39,6 @@ func GetStringEnv(name string, defaultValue string) string {
 
 	return stringValue
 }
-
-
 
 func LocateValueMultiple(inputKey string, valuesMap map[string][]string) []string {
 	for key, value := range valuesMap {
@@ -54,4 +49,3 @@ func LocateValueMultiple(inputKey string, valuesMap map[string][]string) []strin
 
 	return []string{}
 }
-

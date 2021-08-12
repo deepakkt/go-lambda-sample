@@ -9,7 +9,6 @@ import (
 	"testing"
 )
 
-
 func TestAWSDefaultRegionLambda(t *testing.T) {
 	os.Setenv("AWS_REGION", "ap-south-1")
 	defer os.Unsetenv("AWS_REGION")
@@ -17,7 +16,6 @@ func TestAWSDefaultRegionLambda(t *testing.T) {
 	myRegion := helper.GetAwsDefaultRegion()
 	assert.Equal(t, "ap-south-1", myRegion)
 }
-
 
 func TestAWSDefaultRegionLambdaLocal(t *testing.T) {
 	os.Unsetenv("AWS_REGION")
@@ -28,7 +26,6 @@ func TestAWSDefaultRegionLambdaLocal(t *testing.T) {
 	assert.Equal(t, "ap-south-1", myRegion)
 }
 
-
 func TestAWSDefaultRegionAllMissing(t *testing.T) {
 	os.Unsetenv("AWS_REGION")
 	os.Unsetenv("AWS_DEFAULT_REGION")
@@ -36,7 +33,6 @@ func TestAWSDefaultRegionAllMissing(t *testing.T) {
 	myRegion := helper.GetAwsDefaultRegion()
 	assert.Equal(t, "", myRegion)
 }
-
 
 func TestFetchServiceFromARN(t *testing.T) {
 	inputARN := "arn:aws:ecs:us-west-2:111122223333:service/shure-content-api"
@@ -48,7 +44,6 @@ func TestFetchServiceFromARN(t *testing.T) {
 	serviceName, err = helper.GetServiceNameFromARN(inputARN)
 	assert.NotNil(t, err)
 }
-
 
 func TestParseEventDetailSuccess(t *testing.T) {
 	sampleEvent := `
@@ -90,7 +85,6 @@ func TestParseEventDetailSuccess(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-
 func TestParseEventDetailMissingEventName(t *testing.T) {
 	sampleEvent := `
 {                                                                         
@@ -126,7 +120,6 @@ func TestParseEventDetailMissingEventName(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-
 func TestParseEventDetailMissingDeploymentID(t *testing.T) {
 	sampleEvent := `
 {                                                                         
@@ -161,7 +154,6 @@ func TestParseEventDetailMissingDeploymentID(t *testing.T) {
 
 	assert.NotNil(t, err)
 }
-
 
 func TestParseEventDetailMissingTimestamp(t *testing.T) {
 	sampleEvent := `

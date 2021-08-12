@@ -15,7 +15,6 @@ func GetDefaultHTTPTimeout() int {
 	return defaultTimeout
 }
 
-
 func GetDeploymentUser() string {
 	user := GetStringEnv("DEPLOYMENT_USER", "services@graphcms.com")
 	return user

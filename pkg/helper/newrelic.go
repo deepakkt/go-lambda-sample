@@ -16,7 +16,6 @@ func GetNewRelicDeploymentURL(baseDomain, appID string) string {
 		baseDomain, appID)
 }
 
-
 func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
 	eventDetails, _ := ParseEventDetails(request)
 	result := make(map[string]string)
@@ -30,7 +29,6 @@ func GetNewRelicPayload(request events.CloudWatchEvent) map[string]string {
 
 	return result
 }
-
 
 func PostNewRelicDeployment(payload map[string]string,
 	baseDomain, appID, apiKey string) (int, error) {

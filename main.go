@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
-
+	"github.com/aws/aws-sdk-go/aws/session"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 )
+
+var awsSession *session.Session
 
 type LambdaResponse struct {
 	message string
@@ -25,8 +27,9 @@ func init() {
 	}
 
 	logRunEnv(runEnv)
-}
 
+	awsSession = session.Must(session.NewSession())
+}
 
 func validators(request events.CloudWatchEvent) (string, error) {
 	message, err := validate.SourceValidate(request)
@@ -76,7 +79,6 @@ func logRunEnv(runEnv map[string]string) {
 	log.Printf("AWS Region: %s", helper.GetAwsDefaultRegion())
 }
 
-
 func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaResponse, error) {
 	errorMessage, err := validators(request)
 
@@ -89,7 +91,7 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 	logRequest(request)
 	runEnv, _ := validate.EnvValidate()
 
-	newRelicMapping, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME_NEW_RELIC"])
+	newRelicMapping, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME_NEW_RELIC"], awsSession)
 	if err != nil {
 		log.Printf("Error Reading SSM Parameter '%s': %v", runEnv["SSM_PARAMETER_NAME_NEW_RELIC"], err)
 		return LambdaResponse{message: "SSM New Relic Parameter Read Failure"}, err
@@ -101,7 +103,7 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 		return LambdaResponse{message: "SSM New Relic Parameter Decode Failure"}, err
 	}
 
-	slackMapping, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME_SLACK"])
+	slackMapping, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_NAME_SLACK"], awsSession)
 	if err != nil {
 		log.Printf("Error Reading SSM Parameter '%s': %v", runEnv["SSM_PARAMETER_NAME_SLACK"], err)
 		return LambdaResponse{message: "SSM Slack Read Failure"}, err
@@ -121,7 +123,7 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 			errors.New("Default Slack Webhook not defined")
 	}
 
-	slackMessageTemplate, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_MESSAGE_SLACK"])
+	slackMessageTemplate, err := helper.ReadAWSParameter(runEnv["SSM_PARAMETER_MESSAGE_SLACK"], awsSession)
 	if err != nil {
 		log.Printf("Error Reading SSM Parameter '%s': %v", runEnv["SSM_PARAMETER_MESSAGE_SLACK"], err)
 		return LambdaResponse{message: "SSM Slack Message Template Read Failure"}, err
@@ -149,49 +151,69 @@ func HandleRequest(ctx context.Context, request events.CloudWatchEvent) (LambdaR
 
 	newRelicPayload := helper.GetNewRelicPayload(request)
 
-	newRelicAPIToken, err := helper.ReadAWSSecret(runEnv["NEW_RELIC_API_TOKEN"])
+	newRelicAPIToken, err := helper.ReadAWSSecret(runEnv["NEW_RELIC_API_TOKEN"], awsSession)
 	if err != nil {
 		log.Printf("Error Reading New Relic API Token Secret '%s': %v", runEnv["NEW_RELIC_API_TOKEN"], err)
 		return LambdaResponse{message: "SSM New Relic Token Secret Read Failure"}, err
 	}
 
+	newRelicError := false
+	slackError := false
+
 	deployStatus, err := helper.PostNewRelicDeployment(newRelicPayload,
 		runEnv["NEW_RELIC_BASE_DOMAIN"], newRelicTargetApp, newRelicAPIToken)
+
 	if err != nil {
+		newRelicError = true
 		if deployStatus == 999 {
 			log.Printf("New Relic submit aborted: %v", err)
 		} else {
 			log.Printf("New Relic submit failed with status: %d, %v", deployStatus, err)
-			return LambdaResponse{message: "New Relic submission failure"}, err
 		}
+		log.Println("We will attempt slack notification")
+	} else {
+		log.Printf("New Relic Payload submitted: %v, status: %d", newRelicPayload, deployStatus)
 	}
-
-	log.Printf("New Relic Payload submitted: %v, status: %d", newRelicPayload, deployStatus)
 
 	slackPayload := helper.GenerateSlackNotificationStruct(request)
 	slackStatus, err := helper.PostSlackMessage(slackMessageTemplate, slackPayload, defaultSlackWebhook)
 
 	if err != nil {
+		slackError = true
 		log.Printf("Slack post failed with status: %d, %v", slackStatus, err)
-		return LambdaResponse{message: "Slack submission failure"}, err
+		log.Println("We will attempt other webhooks, if available")
 	}
 
 	additionalWebhooks := helper.LocateValueMultiple(ecsServiceName, serviceSlackMap)
 
 	if len(additionalWebhooks) > 0 {
-			log.Printf("Additional webhooks defined for service '%s'", ecsServiceName)
+		log.Printf("Additional webhooks defined for service '%s'", ecsServiceName)
 
-			for _, webhook := range additionalWebhooks {
-				slackStatus, err := helper.PostSlackMessage(slackMessageTemplate, slackPayload, webhook)
+		for _, webhook := range additionalWebhooks {
+			slackStatus, err := helper.PostSlackMessage(slackMessageTemplate, slackPayload, webhook)
 
-				if err != nil {
-					log.Printf("Slack post failed with status: %d, %v", slackStatus, err)
-					return LambdaResponse{message: "Slack submission failure"}, err
-				}
+			if err != nil {
+				slackError = true
+				log.Printf("Slack post failed with status: %d, %v", slackStatus, err)
+				log.Println("We will attempt other webhooks, if available")
 			}
+		}
 	}
 
-	return LambdaResponse{message: "Notification complete!"}, nil
+	if newRelicError {
+		log.Println("New Relic submission did not complete")
+	}
+
+	if slackError {
+		log.Println("Slack submission did not complete for one or more webhooks")
+	}
+
+	if !newRelicError && !slackError {
+		return LambdaResponse{message: "Notification complete!"}, nil
+	}
+
+	return LambdaResponse{message: "Notification incomplete!"},
+		helper.WrapError("One ore more notification failures", nil)
 }
 
 func main() {

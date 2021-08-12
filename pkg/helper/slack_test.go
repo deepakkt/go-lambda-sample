@@ -32,7 +32,6 @@ func TestSlackMappingDecode(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-
 func TestSlackDefaultWebhook(t *testing.T) {
 	mapTemplate := `
 {
@@ -55,7 +54,6 @@ func TestSlackDefaultWebhook(t *testing.T) {
 	assert.Equal(t, "", webhook)
 
 }
-
 
 func TestSlackNotificationStructParse(t *testing.T) {
 	sampleEvent := `
@@ -94,7 +92,6 @@ func TestSlackNotificationStructParse(t *testing.T) {
 	assert.Equal(t, "2020-05-23T11:11:11Z", slackStruct.DeploymentTimestamp)
 	assert.Equal(t, "ECS deployment deploymentId in progress.", slackStruct.DeploymentDescription)
 }
-
 
 func TestSlackPayloadDequote(t *testing.T) {
 	sampleMessage := `{
@@ -224,7 +221,6 @@ func TestSlackPayloadDequote(t *testing.T) {
 
 	assert.Equal(t, expectedOutput, parsedMessage)
 }
-
 
 func TestSlackPayloadNoDequote(t *testing.T) {
 	sampleMessage := `{

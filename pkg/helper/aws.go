@@ -19,7 +19,6 @@ type EventInfo struct {
 	Reason       string `json:"reason"`
 }
 
-
 func GetAwsDefaultRegion() string {
 	val, exists := os.LookupEnv("AWS_REGION")
 	if !exists || len(val) < 1 {
@@ -29,14 +28,12 @@ func GetAwsDefaultRegion() string {
 	return val
 }
 
-
-func ReadAWSSecret(secretID string) (string, error) {
-	awsSession := session.Must(session.NewSession())
+func ReadAWSSecret(secretID string, awsSession *session.Session) (string, error) {
 	*awsSession.Config.Region = GetAwsDefaultRegion()
 
-	session := secretsmanager.New(awsSession)
+	sessionSecretsManager := secretsmanager.New(awsSession)
 
-	secretValue, err := session.GetSecretValue(&secretsmanager.GetSecretValueInput{SecretId: &secretID})
+	secretValue, err := sessionSecretsManager.GetSecretValue(&secretsmanager.GetSecretValueInput{SecretId: &secretID})
 
 	if err != nil {
 		return "", fmt.Errorf("error getting secret from ID '%s': %w", secretID, err)
@@ -45,14 +42,12 @@ func ReadAWSSecret(secretID string) (string, error) {
 	return *secretValue.SecretString, nil
 }
 
-
-func ReadAWSParameter(paramID string) (string, error) {
-	awsSession := session.Must(session.NewSession())
+func ReadAWSParameter(paramID string, awsSession *session.Session) (string, error) {
 	*awsSession.Config.Region = GetAwsDefaultRegion()
 
-	session := ssm.New(awsSession)
+	sessionAWSParameter := ssm.New(awsSession)
 
-	param, err := session.GetParameter(&ssm.GetParameterInput{
+	param, err := sessionAWSParameter.GetParameter(&ssm.GetParameterInput{
 		Name:           aws.String(paramID),
 		WithDecryption: aws.Bool(false),
 	})
@@ -64,7 +59,6 @@ func ReadAWSParameter(paramID string) (string, error) {
 	return *param.Parameter.Value, nil
 }
 
-
 func GetServiceNameFromARN(arnString string) (string, error) {
 	arnSplit := strings.Split(arnString, "service/")
 
@@ -74,7 +68,6 @@ func GetServiceNameFromARN(arnString string) (string, error) {
 
 	return arnSplit[1], nil
 }
-
 
 func ParseEventDetails(request events.CloudWatchEvent) (EventInfo, error) {
 	var eventInfo EventInfo
@@ -97,5 +90,3 @@ func ParseEventDetails(request events.CloudWatchEvent) (EventInfo, error) {
 
 	return eventInfo, nil
 }
-
-
